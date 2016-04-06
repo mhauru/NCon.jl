@@ -10,7 +10,7 @@ export ncon
     ncon(L, v; forder=nothing, order=nothing, check_indices=false)
 
 Takes a tuple of tensors L and a tuple of Array[Integer,1]s v that specifies
-how these tensors form a network, and contracts this network.  The return value
+how these tensors form a network, and contracts this network. The return value
 is the tensor that is formed as the result of this contraction.
 
 More specifically:
@@ -74,7 +74,7 @@ function ncon(L, v; forder=nothing, order=nothing, check_indices=false)
             newA = trace(L[t], v[t])
         else
             t1, t2 = tcon
-            newA = con(L[t1], L[t2], (v[t1], v[t2]))
+            newA = con(L[t1], v[t1], L[t2], v[t2])
         end
         # Find the indices icon that were contracted.
         icon = get_icon(v, tcon)
@@ -139,9 +139,13 @@ function get_icon(v, tcon)
     if length(tcon) == 1
         # This is a trace.
         inds = v[tcon[1]]
-        # The following is very inefficient, but that shouldn't matter.
-        occurs_twice(x) = length(findin(inds, x)) == 2
-        icon = filter(occurs_twice, inds)
+        # Find all the elements that occur twice in inds.
+        T = eltype(inds)
+        s = Set{T}()
+        icon = Array{T,1}()
+        for i in inds
+            i in s ? push!(icon, i) : push!(s,i)
+        end
     else
         ind_lists = [v[i] for i in tcon]
         icon = unique(intersect(ind_lists...))
@@ -248,9 +252,37 @@ end
 ########################################################################
 
 
-""" Contract to tensors. """
-function con(A, B, inds)
-    res = tensorcontract(A, inds[1], B, inds[2])
+"""
+If vA contains some element repeated twice, the second of these elements is
+replaced by m+1. Each time this occurs, m is incremented by one. The result
+is a new Array that has no elements repeated twice, and all the new elements
+are larger than m.
+"""
+function change_duplicates{T<:Number}(vA::Array{T}, m=maximum(abs(vA)))
+    s = Set{T}()
+    for (i, el) in enumerate(vA)
+        if el in s 
+            vA = copy(vA)
+            m += one(T)
+            vA[i] = m
+        else
+            push!(s, el)
+        end
+    end
+    return vA
+end
+
+
+""" Contract two tensors. """
+function con(A, vA, B, vB)
+    # tensorcontract can't handle a case where vA or vB includes a partial
+    # trace (a repeated index) that is to be performed later.
+    # Work around this by changing the labels if this occurs.
+    m = maximum(abs(vcat(vA, vB)))
+    vA = change_duplicates(vA, m)
+    m = maximum(abs(vcat(vA, vB)))
+    vB = change_duplicates(vB, m)
+    res = tensorcontract(A, vA, B, vB)
     return res
 end
 

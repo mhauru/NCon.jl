@@ -27,7 +27,7 @@ con1 = ncon((A, B), ([-1,-2,1], [1,-3]); check_indices=true)
 @tensor con1reco[a,b,c] := A[a,b,i] * B[i,c]
 @test isapprox(con1, con1reco)
 
-con2 = ncon((A, B, C), ((-1,3,2), (2,-2), (-4,3,1,-3,1)); check_indices=true)
+con2 = ncon((A, B, C), ((-1,1,2), (2,-2), (-4,1,3,-3,3)); check_indices=true)
 @tensor con2reco[a,b,c,d] := A[a,k,j] * B[j,b] * C[d,k,i,c,i]
 @test isapprox(con2, con2reco)
 

@@ -38,7 +38,7 @@ If `check_indices=true` (by default it's `false`) then checks are performed to
 make sure the contraction is well-defined. If not, an `ArgumentError` with a
 helpful description of what went wrong is provided.
 
-Using `ncon` is best understood through a few examples.
+#### Examples
 
 A matrix product:
 ```julia

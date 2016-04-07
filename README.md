@@ -61,7 +61,7 @@ julia> B = rand(5,3,6,7,6);
 julia> C = rand(7,2);
 julia> D = ncon((A, B, C), ([3,-2,2], [2,3,1,4,1], [4,-1]));
 julia> size(D)
-(4,)
+(2,4)
 ```
 By default, the contractions are done in the order [1,2,3,4]. This may not be
 the optimal choice, in which case we should specify a better contraction order

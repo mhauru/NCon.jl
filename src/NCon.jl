@@ -91,8 +91,7 @@ function ncon(L, v; forder=nothing, order=nothing, check_indices=false)
         end
         order = renew_order(order, icon)  # Update order
     end
-    Alast, vlast = multiply_final(L, v)
-    Alast = permute_final(Alast, vlast, forder)
+    Alast = multiply_final(L, v, forder)
     return Alast
 end
 
@@ -209,7 +208,6 @@ function do_check_indices(L, v, order, forder)
     # For t, o in zip(v_pairs, v_sum) t is the tuple of the number of
     # the tensor and the index and o is the contraction order of that
     # index. We group these tuples by the contraction order.
-    # TODO the "collect" should be unnecessary in the next two lines.
     order_groups = [[t for (t, o) in
                      collect(filter(s -> s[2]==n, zip(v_pairs, v_sum)))]
                     for n in order]
@@ -295,30 +293,38 @@ end
 
 
 """
-Return the tensor product (no contractions) of the tensors in L and the
-corresponding index list.
+Return the tensor product (no contractions) of the tensors in L, with the
+indices permuted to the order specified in forder.
 """
-function multiply_final(L, v)
-    # TODO Multiplying these pair-wise and then doing a permutation is
-    # inefficient, although subleadingly so.
-    Alast = L[1]
-    for B in L[2:end]
-        indsA = collect(-ndims(Alast):-1)
-        indsB = collect(1:ndims(B))
-        Alast = tensorproduct(Alast, indsA, B, indsB)
+function multiply_final(L, v, forder)
+    if length(L) == 1
+        Anew = tensorcopy(L[1], v[1], forder)
+    else
+        lengths = map(length, L)
+        while length(L) > 1
+            # Get the two tensors in L with smallest number of elements.
+            i = indmin(lengths)
+            A, vA = L[i], v[i]
+            deleteat!(L, i)
+            deleteat!(v, i)
+            deleteat!(lengths, i)
+            j = indmin(lengths)
+            B, vB = L[j], v[j]
+            deleteat!(L, j)
+            deleteat!(v, j)
+            deleteat!(lengths, j)
+            # Multiply them together and permute their indices at the same
+            # time.
+            # vnew is all the indices of vA and vB, in the order that they
+            # appear in forder.
+            vnew = intersect(forder, vcat(vA, vB))
+            Anew = tensorproduct(A, vA, B, vB, vnew)
+            push!(L, Anew)
+            push!(v, vnew)
+            push!(lengths, length(Anew))
+        end
     end
-    vlast = vcat(v...)
-    return Alast, vlast
-end
-
-
-"""
-Return the final tensor A with its legs permuted to the order given in forder.
-"""
-function permute_final(A, v, forder)
-    perm = indexin(forder, v)
-    A = tensorcopy(A, collect(1:ndims(A)), perm)
-    return A
+    return Anew
 end
 
 

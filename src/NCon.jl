@@ -177,15 +177,17 @@ end
 Check that
 1) the number of tensors in L matches the number of index lists in v.
 2) every tensor is given the right number of indices.
-3) every contracted index is featured exactly twice and every free index
+3) order only has positive numbers in it and forder only negative.
+4) every contracted index is featured exactly twice and every free index
    exactly once.
-4) the dimensions of the two ends of each contracted index match.
-5) 0 is not in v.
+5) That every index appears exactly once in either order or forder.
+6) the dimensions of the two ends of each contracted index match.
+7) 0 is not in v.
 """
 function do_check_indices(L, v, order, forder)
     #1)
     if length(L) != length(v)
-        msg = "In ncon.do_check_indices, the number of tensors ($(length(L)))"*
+        msg = "In ncon, the number of tensors ($(length(L)))"*
               " does not match the number of index lists ($(length(v)))."
         throw(ArgumentError(msg))
     end
@@ -193,19 +195,34 @@ function do_check_indices(L, v, order, forder)
     dimcounts = map(ndims, L)
     for (i, inds) in enumerate(v)
         if length(inds) != dimcounts[i]
-            msg = "In ncon.do_check_indices, length(v[$i])=$(length(inds))"*
+            msg = "In ncon, length(v[$i])=$(length(inds))"*
                   " does not match the numbers of indices of L[$i] ="*
                   " $(dimcounts[i])"
             throw(ArgumentError(msg))
         end
     end
-    #3) and 4) and 5)
+    #3)
+    if !all(order .> 0)
+        msg = "In ncon, not all elements in order are positive."
+        throw(ArgumentError(msg))
+    end
+    if !all(forder .< 0)
+        msg = "In ncon, not all elements in forder are negative."
+        throw(ArgumentError(msg))
+    end
+    #4-7)
     # "v_pairs = [[(1,1), (1,2), (1,3), ...], [(2,1), (2,2), (2,3), ...], ...]"
     v_pairs  = [[(i,j) for j in 1:length(s)] for (i, s) in enumerate(v)]
     v_pairs = vcat(v_pairs...)
     v_sum = vcat(v...)
     if 0 in v_sum
         throw(ArgumentError("Zero is not a valid index for ncon"))
+    end
+    if Set(union(order, forder)) != Set(v_sum)
+        msg = "In ncon, the indices in forder and order are not the same as"*
+              " the indices in v."*
+              "\nforder: $forder\norder: $order\nv: $v"
+        throw(ArgumentError(msg))
     end
     # For t, o in zip(v_pairs, v_sum) t is the tuple of the number of
     # the tensor and the index and o is the contraction order of that
@@ -218,7 +235,7 @@ function do_check_indices(L, v, order, forder)
                      for n in forder]
     for (i, o) in enumerate(order_groups)
         if length(o) != 2
-            msg = "In ncon.do_check_indices, the contracted index"*
+            msg = "In ncon, the contracted index"*
                   " $(order[i]) is not featured exactly twice in v."
             throw(ArgumentError(msg))
         else
@@ -226,7 +243,7 @@ function do_check_indices(L, v, order, forder)
             A1, ind1 = o[2]
             compatible = size(L[A0])[ind0] == size(L[A1])[ind1]
             if !compatible
-                msg = "In ncon.do_check_indices, for the contraction index"*
+                msg = "In ncon, for the contraction index"*
                       " $(order[i]), the leg $ind0 of tensor $A0 and"*
                       " leg $ind1 of tensor $A1 are not compatible."
                 throw(ArgumentError(msg))
@@ -235,7 +252,7 @@ function do_check_indices(L, v, order, forder)
     end
     for (i, fo) in enumerate(forder_groups)
         if length(fo) != 1
-            msg = "In ncon.do_check_indices, the free index"*
+            msg = "In ncon, the free index"*
                   " $(forder[i]) is not featured exactly once in v."
             throw(ArgumentError(msg))
         end

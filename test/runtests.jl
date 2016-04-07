@@ -20,6 +20,24 @@ E = rand(3,2,3,2)
              ncon((A, B), ([-1,-2,0], [0,-3]); check_indices=true))
 @test_throws(ArgumentError,
              ncon((A, B), ([-1,-2,1], [-3,1]); check_indices=true))
+@test_throws(ArgumentError,
+             ncon((A, E), ([2,1,-3], [-1,-2,2,1]); order=[1,2,-5],
+                  check_indices=true))
+@test_throws(ArgumentError,
+             ncon((A, E), ([2,1,-3], [-1,-2,2,1]); order=[1],
+                  check_indices=true))
+@test_throws(ArgumentError,
+             ncon((A, E), ([2,1,-3], [-1,-2,2,1]); order=[1,2,3],
+                  check_indices=true))
+@test_throws(ArgumentError,
+             ncon((A, E), ([2,1,-3], [-1,-2,2,1]); forder=[-1,-2,1],
+                  check_indices=true))
+@test_throws(ArgumentError,
+             ncon((A, E), ([2,1,-3], [-1,-2,2,1]); forder=[-1],
+                  check_indices=true))
+@test_throws(ArgumentError,
+             ncon((A, E), ([2,1,-3], [-1,-2,2,1]); forder=[-1,-2,-5],
+                  check_indices=true))
 
 # Note that the different calls use tuples/Arrays for the arguments in
 # different combinations. They should all be equally valid.

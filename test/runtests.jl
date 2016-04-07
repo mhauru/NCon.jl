@@ -35,8 +35,8 @@ con = ncon((A, C), ((-1,2,1), (-2,2,-3,-4,1)); check_indices=true)
 @tensor reco[a,b,c,d] := A[a,j,i] * C[b,j,c,d,i]
 @test isapprox(con, reco)
 
-@test permutedims(C, [3,1,2,4,5]) == ncon(C, [-1,-2,-3,-4,-5];
-                                          forder=[-3,-1,-2,-4,-5],
+@test permutedims(C, [3,1,2,4,5]) == ncon(C, [-11,-22,-33,-44,-55];
+                                          forder=[-33,-11,-22,-44,-55],
                                           check_indices=true)
 
 @test D1 == ncon(D1, [-1,-2]; check_indices=true)

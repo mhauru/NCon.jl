@@ -5,7 +5,7 @@ using TensorOperations
 A = rand(3,2,5)
 B = rand(5,6)
 C = rand(2,2,5,4,5)
-D = rand(10,8)
+D1, D2, D3 = rand(10,8), rand(10,8), rand(10,8)
 E = rand(3,2,3,2)
 
 @test_throws(ArgumentError,
@@ -35,15 +35,19 @@ con = ncon((A, C), ((-1,2,1), (-2,2,-3,-4,1)); check_indices=true)
 @tensor reco[a,b,c,d] := A[a,j,i] * C[b,j,c,d,i]
 @test isapprox(con, reco)
 
-@test D == ncon(D, [-1,-2]; check_indices=true)
+@test permutedims(C, [3,1,2,4,5]) == ncon(C, [-1,-2,-3,-4,-5];
+                                          forder=[-3,-1,-2,-4,-5],
+                                          check_indices=true)
 
-con = ncon((D, D), ([-1,-2], [-3,-4]); check_indices=true)
-@tensor reco[a,b,c,d] := D[a,b] * D[c,d]
+@test D1 == ncon(D1, [-1,-2]; check_indices=true)
+
+con = ncon((D1, D2), ([-1,-2], [-3,-4]); check_indices=true)
+@tensor reco[a,b,c,d] := D1[a,b] * D2[c,d]
 @test isapprox(con, reco)
 
-con = ncon((D, D), ([-1,-2], [-3,-4]); forder=[-2,-4,-1,-3],
-           check_indices=true)
-@tensor reco[b,d,a,c] := D[a,b] * D[c,d]
+con = ncon((D1, D2, D3), ([-1,-2], [-6,-5], [-3,-4]);
+           forder=[-2,-4,-5,-1,-6,-3], check_indices=true)
+@tensor reco[-2,-4,-5,-1,-6,-3] := D1[-1,-2] * D2[-6,-5] * D3[-3,-4]
 @test isapprox(con, reco)
 
 con = ncon(E, [1,2,1,2]; check_indices=true)

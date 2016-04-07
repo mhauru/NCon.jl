@@ -28,7 +28,9 @@ tensor in the contraction (a trace).
 
 order, if present, contains a tuple or Array of all positive indices - if not
 (1, 2, 3, 4, ...) by default. This is the order in which the contractions are
-performed.
+performed. However, whenever an index joining two tensors is about to be
+contracted together, ncon contracts at the same time all indices connecting
+these two tensors, even if some of them only come up later in order.
 
 forder, if present, contains the final ordering of the uncontracted indices
 - if not, (-1, -2, ...) by default.

@@ -28,7 +28,10 @@ Negative labels mark indices which are to remain free (uncontracted).
 
 The keyword argument `order` is an Array of all the positive labels, which
 specifies the order in which the pair-wise tensor contractions are to be done.
-By default it is `sort(all-positive-numbers-in-v)`.
+By default it is `sort(all-positive-numbers-in-v)`. Note that whenever an index
+joining two tensors is about to be contracted together, ncon contracts at the
+same time all indices connecting these two tensors, even if some of them only
+come up later in order.
 
 Correspondingly `forder` specifies the order to which the remaining free
 indices are to be permuted.  By default it is `sort(all-negative-numbers-in-v,

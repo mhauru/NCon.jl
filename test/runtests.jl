@@ -7,6 +7,8 @@ B = rand(5,6)
 C = rand(2,2,5,4,5)
 D1, D2, D3 = rand(10,8), rand(10,8), rand(10,8)
 E = rand(3,2,3,2)
+I = rand(-100:100, 3,2)
+J = rand(-100:100, 5,2,3,5)
 
 @test_throws(ArgumentError,
              ncon((A, B), ([-1,-2,1], [1,-3], [-4]); check_indices=true))
@@ -70,5 +72,13 @@ con = ncon((D1, D2, D3), ([-1,-2], [-6,-5], [-3,-4]);
 
 con = ncon(E, [1,2,1,2]; check_indices=true)
 @tensor reco[] := E[i,j,i,j]
+@test isapprox(con, reco)
+
+con = ncon((I,J), ([1,2], [-2,2,1,-1]); check_indices=true)
+reco = tensorcontract(I, [:i,:j], J, [:b,:j,:i,:a], [:a,:b]; method=:native)
+@test isapprox(con, reco)
+
+con = ncon(J, [1,-1,-2,1]; check_indices=true)
+@tensor reco[a,b] := J[i,a,b,i]
 @test isapprox(con, reco)
 

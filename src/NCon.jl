@@ -5,6 +5,8 @@ module NCon
 using TensorOperations
 export ncon
 
+# The element types that BLAS can handle. In a tuple to have it be immutable.
+const blastypes = (Float32, Float64, Complex64, Complex128)    
 
 """
     ncon(L, v; forder=nothing, order=nothing, check_indices=false)
@@ -299,7 +301,13 @@ function con(A, vA, B, vB)
     vA = change_duplicates(vA, m)
     m = maximum(abs(vcat(vA, vB)))
     vB = change_duplicates(vB, m)
-    res = tensorcontract(A, vA, B, vB)
+    # Check whether the element type of A and B can be handled by BLAS.
+    if eltype(A) in blastypes && eltype(B) in blastypes
+        method = :BLAS
+    else
+        method = :native
+    end
+    res = tensorcontract(A, vA, B, vB; method=method)
     return res
 end
 

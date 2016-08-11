@@ -41,7 +41,7 @@ If check_indices is true (by default it's false) then checks are performed to
 make sure the contraction is well-defined. If not, an ArgumentError with a
 helpful description of what went wrong is provided.
 """
-function ncon(L, v; forder=nothing, order=nothing, check_indices=false)
+function ncon(L, v; forder=nothing, order=nothing, check_indices=true)
     # We want to handle the tensors as an Array{AbstractArray, 1}, instead of a
     # tuple. In addition, if only a single element is given, we make an Array
     # out of it. Inputs are assumed to be non-empty.

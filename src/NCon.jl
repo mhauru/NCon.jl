@@ -243,11 +243,13 @@ function do_check_indices(L, v, order, forder)
         else
             A0, ind0 = o[1]
             A1, ind1 = o[2]
-            compatible = size(L[A0])[ind0] == size(L[A1])[ind1]
+			size_A0_ind0 = size(L[A0])[ind0]	
+			size_A1_ind1 = size(L[A1])[ind1]	
+            compatible =  (size_A0_ind0 == size_A1_ind1)
             if !compatible
                 msg = "In ncon, for the contraction index"*
-                      " $(order[i]), the leg $ind0 of tensor $A0 and"*
-                      " leg $ind1 of tensor $A1 are not compatible."
+                      " $(order[i]), the leg $ind0 of tensor $A0 ($size_A0_ind0 values) and"*
+                      " leg $ind1 of tensor $A1 ($size_A1_ind1 values) are not compatible."
                 throw(ArgumentError(msg))
             end
         end

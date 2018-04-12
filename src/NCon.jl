@@ -6,7 +6,7 @@ using TensorOperations
 export ncon
 
 # The element types that BLAS can handle. In a tuple to have it be immutable.
-const blastypes = (Float32, Float64, Complex64, Complex128)    
+const blastypes = (Float32, Float64, Complex64, Complex128)
 
 """
     ncon(L, v; forder=nothing, order=nothing, check_indices=false)
@@ -19,7 +19,7 @@ More specifically:
 L = (A1, A2, ..., Ap) is a tuple of tensors or a single tensor.
 
 v = (v1, v2, ..., vp) is a tuple of Arrays of indices, each of which
-corresponds to one of the tensors in L. For instance, if v1 = (3,4,-1) and 
+corresponds to one of the tensors in L. For instance, if v1 = (3,4,-1) and
 v2 = (-2,-3,4), then the second index of A1 and the last index of A2 are
 contracted together, because they are both labeled by 4. All positive numbers
 label indices that are to be contracted and all negative numbers label indices
@@ -105,7 +105,7 @@ end
 
 """ Identify all unique, positive indices and return them sorted. """
 function create_order(v)
-    order = sort(filter!(x -> x > 0, unique(vcat(v...))))
+    order = sort(Iterators.filter!(x -> x > 0, unique(vcat(v...))))
     return order
 end
 
@@ -115,7 +115,7 @@ Identify all unique, negative indices and return them reverse sorted (-1
 first).
 """
 function create_forder(v)
-    forder = sort(filter!(x -> x < 0, unique(vcat(v...))), rev=true)
+    forder = sort(Iterators.filter!(x -> x < 0, unique(vcat(v...))), rev=true)
     return forder
 end
 
@@ -163,14 +163,14 @@ of the tensors tcon.
 """
 function find_newv(v, tcon, icon)
     newv = vcat([v[i] for i in tcon]...)
-    newv = filter(x -> !(x in icon), newv)
+    newv = collect(Iterators.filter(x -> !(x in icon), newv))
     return newv
 end
 
 
 """ Return the new order with the contracted indices removed from it. """
 function renew_order(order, icon)
-    neworder = filter(x -> !(x in icon), order)
+    neworder = collect(Iterators.filter(x -> !(x in icon), order))
     return neworder
 end
 
@@ -230,10 +230,10 @@ function do_check_indices(L, v, order, forder)
     # the tensor and the index and o is the contraction order of that
     # index. We group these tuples by the contraction order.
     order_groups = [[t for (t, o) in
-                     collect(filter(s -> s[2]==n, zip(v_pairs, v_sum)))]
+                     collect(Iterators.filter(s -> s[2]==n, zip(v_pairs, v_sum)))]
                     for n in order]
     forder_groups = [[t for (t, fo) in
-                      collect(filter(s -> s[2]==n, zip(v_pairs, v_sum)))]
+                      collect(Iterators.filter(s -> s[2]==n, zip(v_pairs, v_sum)))]
                      for n in forder]
     for (i, o) in enumerate(order_groups)
         if length(o) != 2
@@ -243,8 +243,8 @@ function do_check_indices(L, v, order, forder)
         else
             A0, ind0 = o[1]
             A1, ind1 = o[2]
-            size_A0_ind0 = size(L[A0])[ind0]	
-            size_A1_ind1 = size(L[A1])[ind1]	
+            size_A0_ind0 = size(L[A0])[ind0]
+            size_A1_ind1 = size(L[A1])[ind1]
             compatible =  (size_A0_ind0 == size_A1_ind1)
             if !compatible
                 msg = "In ncon, for the contraction index"*
@@ -280,10 +280,10 @@ replaced by m+1. Each time this occurs, m is incremented by one. The result
 is a new Array that has no elements repeated twice, and all the new elements
 are larger than m.
 """
-function change_duplicates{T<:Number}(vA::Array{T}, m=maximum(abs(vA)))
+function change_duplicates{T<:Number}(vA::Array{T}, m=maximum(abs.(vA)))
     s = Set{T}()
     for (i, el) in enumerate(vA)
-        if el in s 
+        if el in s
             vA = copy(vA)
             m += one(T)
             vA[i] = m
@@ -300,9 +300,9 @@ function con(A, vA, B, vB)
     # tensorcontract can't handle a case where vA or vB includes a partial
     # trace (a repeated index) that is to be performed later.
     # Work around this by changing the labels if this occurs.
-    m = maximum(abs(vcat(vA, vB)))
+    m = maximum(abs.(vcat(vA, vB)))
     vA = change_duplicates(vA, m)
-    m = maximum(abs(vcat(vA, vB)))
+    m = maximum(abs.(vcat(vA, vB)))
     vB = change_duplicates(vB, m)
     # Check whether the element type of A and B can be handled by BLAS.
     if eltype(A) in blastypes && eltype(B) in blastypes

@@ -1,5 +1,5 @@
 using NCon
-using Base.Test
+using Test
 using TensorOperations
 
 A = rand(3,2,5)
@@ -75,10 +75,9 @@ con = ncon(E, [1,2,1,2]; check_indices=true)
 @test isapprox(con, reco)
 
 con = ncon((I,J), ([1,2], [-2,2,1,-1]); check_indices=true)
-reco = tensorcontract(I, [:i,:j], J, [:b,:j,:i,:a], [:a,:b]; method=:native)
+reco = tensorcontract(I, [:i,:j], J, [:b,:j,:i,:a], [:a,:b])
 @test isapprox(con, reco)
 
 con = ncon(J, [1,-1,-2,1]; check_indices=true)
 @tensor reco[a,b] := J[i,a,b,i]
 @test isapprox(con, reco)
-

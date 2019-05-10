@@ -81,3 +81,11 @@ reco = tensorcontract(I, [:i,:j], J, [:b,:j,:i,:a], [:a,:b])
 con = ncon(J, [1,-1,-2,1]; check_indices=true)
 @tensor reco[a,b] := J[i,a,b,i]
 @test isapprox(con, reco)
+
+# test whether it works for non-blastypes
+A = Float16.(A)
+B = Float16.(B)
+C = Float16.(C)
+con = ncon((A, B, C), ((-1,1,2), (2,-2), (-4,1,3,-3,3)); check_indices=true)
+@tensor reco[a,b,c,d] := A[a,k,j] * B[j,b] * C[d,k,i,c,i]
+@test isapprox(con, reco)

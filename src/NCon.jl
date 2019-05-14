@@ -50,8 +50,8 @@ function ncon(L, v; forder=nothing, order=nothing, check_indices=true)
     isa(v, Vector{Int}) && (v = [v])
     v = collect(map(collect, v))
 
-    isnothing(order ) && ( order = create_order( v))
-    isnothing(forder) && (forder = create_forder(v))
+    order  === nothing && ( order = create_order( v))
+    forder === nothing && (forder = create_forder(v))
     check_indices && do_check_indices(L, v, order, forder)
 
     while length(order) > 0

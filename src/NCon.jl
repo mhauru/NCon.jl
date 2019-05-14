@@ -3,10 +3,8 @@ A module for the function ncon, which does contractions of several tensors.
 """
 module NCon
 using TensorOperations
+using LinearAlgebra: BlasFloat
 export ncon
-
-# The element types that BLAS can handle. In a tuple to have it be immutable.
-const blastypes = (Float32, Float64, Complex64, Complex128)
 
 """
     ncon(L, v; forder=nothing, order=nothing, check_indices=false)
@@ -105,7 +103,7 @@ end
 
 """ Identify all unique, positive indices and return them sorted. """
 function create_order(v)
-    order = sort(Iterators.filter!(x -> x > 0, unique(vcat(v...))))
+    order = sort(filter!(x -> x > 0, unique(vcat(v...))))
     return order
 end
 
@@ -115,7 +113,7 @@ Identify all unique, negative indices and return them reverse sorted (-1
 first).
 """
 function create_forder(v)
-    forder = sort(Iterators.filter!(x -> x < 0, unique(vcat(v...))), rev=true)
+    forder = sort(filter!(x -> x < 0, unique(vcat(v...))), rev=true)
     return forder
 end
 
@@ -280,7 +278,7 @@ replaced by m+1. Each time this occurs, m is incremented by one. The result
 is a new Array that has no elements repeated twice, and all the new elements
 are larger than m.
 """
-function change_duplicates{T<:Number}(vA::Array{T}, m=maximum(abs.(vA)))
+function change_duplicates(vA::Vector{T}, m=maximum(abs.(vA))) where {T <: Number}
     s = Set{T}()
     for (i, el) in enumerate(vA)
         if el in s
@@ -304,13 +302,12 @@ function con(A, vA, B, vB)
     vA = change_duplicates(vA, m)
     m = maximum(abs.(vcat(vA, vB)))
     vB = change_duplicates(vB, m)
-    # Check whether the element type of A and B can be handled by BLAS.
-    if eltype(A) in blastypes && eltype(B) in blastypes
-        method = :BLAS
+    if A isa BlasFloat && B isa BlasFloat
+        enable_blas()
     else
-        method = :native
+        disable_blas()
     end
-    res = tensorcontract(A, vA, B, vB; method=method)
+    res = tensorcontract(A, vA, B, vB)
     return res
 end
 
@@ -333,12 +330,12 @@ function multiply_final(L, v, forder)
         lengths = map(length, L)
         while length(L) > 1
             # Get the two tensors in L with smallest number of elements.
-            i = indmin(lengths)
+            i = argmin(lengths)
             A, vA = L[i], v[i]
             deleteat!(L, i)
             deleteat!(v, i)
             deleteat!(lengths, i)
-            j = indmin(lengths)
+            j = argmin(lengths)
             B, vB = L[j], v[j]
             deleteat!(L, j)
             deleteat!(v, j)
@@ -359,5 +356,3 @@ end
 
 
 end
-
-

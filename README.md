@@ -2,6 +2,8 @@
 
 [![Build Status](https://travis-ci.org/mhauru/NCon.jl.svg?branch=master)](https://travis-ci.org/mhauru/NCon.jl)
 
+**UPDATE January 2020**: Since November 2019 [TensorOperations](https://github.com/Jutho/TensorOperations.jl) implements an `ncon` interface as well. It hence provides everything that this package does, plus much more, such as smart management of temporary arrays. We hence recommend using TensorOperations instead of NCon from now on. Future maintenance of NCon may or may not happen.
+
 NCon exports the function `ncon`, which provides a convenient interface for
 contracting networks of tensors in a given order.  It is a Julia port of the
 MATLAB function described in

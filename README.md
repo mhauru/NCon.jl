@@ -13,7 +13,10 @@ the fancier features. NCon relies on the
 implementation of pair-wise tensor contractions.
 
 ## Installation
-`Pkg.clone("git://github.com/mhauru/NCon.jl")`
+```julia
+julia> ]
+pkg> add "git://github.com/mhauru/NCon.jl"
+```
 
 ## Usage
 ```
